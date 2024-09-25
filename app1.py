@@ -10,9 +10,14 @@ import streamlit as st
 import pandas as pd
 import base64
 from io import BytesIO
-from fpdf import FPDF
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 import io
+import os
+os.system('pip install reportlab')
 
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 
 # Function to encode the image to base64
 def get_base64_image(image_path):
@@ -331,7 +336,7 @@ def format_excel_output(summary_df, revenue_df):
     return output
 
 
-# Use this to export data to Excel instead of PDF
+# Function to create a downloadable Excel file
 def to_excel(df):
     output = BytesIO()
     writer = pd.ExcelWriter(output, engine='xlsxwriter')
@@ -340,31 +345,31 @@ def to_excel(df):
     processed_data = output.getvalue()
     return processed_data
 
-# Function to download file as Excel
-def download_file(df):
-    file = to_excel(df)
-    b64 = base64.b64encode(file).decode()
-    href = f'<a href="data:application/octet-stream;base64,{b64}" download="data.xlsx">Download Excel File</a>'
-    st.markdown(href, unsafe_allow_html=True)
-
-
-
-
+# Function to create a downloadable PDF file
 def to_pdf(df):
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font('Arial', 'B', 12)
-    pdf.cell(200, 10, txt="Data Export", ln=True, align='C')
-    
-    # Add data rows from dataframe
-    for row in df.itertuples():
-        pdf.cell(200, 10, txt=str(row), ln=True)
-
     output = BytesIO()
-    pdf.output(output)
+    p = canvas.Canvas(output, pagesize=letter)
+    p.drawString(100, 750, "Data Export")
+    
+    for i, row in enumerate(df.itertuples()):
+        p.drawString(100, 730 - i * 20, f"{row}")
+    
+    p.save()
     pdf_data = output.getvalue()
     return pdf_data
 
+# Function to download file as Excel or PDF
+def download_file(df, format):
+    if format == "Excel":
+        file = to_excel(df)
+        b64 = base64.b64encode(file).decode()
+        href = f'<a href="data:application/octet-stream;base64,{b64}" download="data.xlsx">Download Excel File</a>'
+        st.markdown(href, unsafe_allow_html=True)
+    elif format == "PDF":
+        file = to_pdf(df)
+        b64 = base64.b64encode(file).decode()
+        href = f'<a href="data:application/octet-stream;base64,{b64}" download="data.pdf">Download PDF File</a>'
+        st.markdown(href, unsafe_allow_html=True)
 
 
 
