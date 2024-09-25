@@ -13,11 +13,7 @@ from io import BytesIO
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 import io
-import os
-os.system('pip install reportlab')
 
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
 
 # Function to encode the image to base64
 def get_base64_image(image_path):
